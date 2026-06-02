@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="bJi1B0uVUQd3OHXCH-uA">
+    <mxGraphModel dx="2112" dy="934" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=20;align=center;verticalAlign=middle;fontColor=#0078D4;" value="&lt;b&gt;SpatialViz Studio — Azure Cloud Architecture&lt;/b&gt;" vertex="1">
+          <mxGeometry height="35" width="620" x="180" y="5" as="geometry" />
+        </mxCell>
+        <mxCell id="fd" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=10;image=img/lib/azure2/networking/Front_Doors.svg;" value="Azure Front Door" vertex="1">
+          <mxGeometry height="48" width="55" x="58" y="113.5" as="geometry" />
+        </mxCell>
+        <mxCell id="fd_label" parent="1" style="text;html=1;fontSize=9;align=center;" value="&lt;b&gt;CDN + WAF&lt;/b&gt;&lt;br&gt;Global Edge" vertex="1">
+          <mxGeometry height="30" width="80" x="38" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="swa_box" parent="1" style="swimlane;startSize=20;fillColor=#E3F2FD;strokeColor=#0078D4;html=1;rounded=1;container=1;pointerEvents=0;fontSize=10;" value="&lt;b&gt;Azure Static Web Apps&lt;/b&gt;" vertex="1">
+          <mxGeometry height="160" width="180" x="220" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="swa_icon" parent="swa_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=10;image=img/lib/azure2/preview/Static_Apps.svg;" value="" vertex="1">
+          <mxGeometry height="40" width="50" x="65" y="24" as="geometry" />
+        </mxCell>
+        <mxCell id="nextjs" parent="swa_box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4285F4;fontColor=#fff;strokeColor=none;fontSize=10;" value="&lt;b&gt;Next.js 16&lt;/b&gt;" vertex="1">
+          <mxGeometry height="25" width="150" x="15" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="r3f" parent="swa_box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#34A853;fontColor=#fff;strokeColor=none;fontSize=10;" value="&lt;b&gt;react-three-fiber&lt;/b&gt; 3D + Walk" vertex="1">
+          <mxGeometry height="25" width="150" x="15" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="editor_fe" parent="swa_box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBBC04;fontColor=#333;strokeColor=none;fontSize=10;" value="&lt;b&gt;2D Editor&lt;/b&gt; + Geometry Engine" vertex="1">
+          <mxGeometry height="25" width="150" x="15" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="aca_box" parent="1" style="swimlane;startSize=20;fillColor=#FFF3E0;strokeColor=#E65100;html=1;rounded=1;container=1;pointerEvents=0;fontSize=10;" value="&lt;b&gt;Azure Container Apps Environment&lt;/b&gt;" vertex="1">
+          <mxGeometry height="200" width="475" x="220" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="aca_icon" parent="aca_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=10;image=img/lib/azure2/other/Container_App_Environments.svg;" value="" vertex="1">
+          <mxGeometry height="30" width="30" x="4" y="21" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_extract" parent="aca_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/azure2/other/Worker_Container_App.svg;" value="&lt;b&gt;Extraction&lt;br&gt;Service&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#888&quot;&gt;CU + GPT-5.4&lt;/font&gt;" vertex="1">
+          <mxGeometry height="53" width="55" x="13" y="102" as="geometry" />
+        </mxCell>
+        <mxCell id="eADGQO-5m-WkKNQyRdaf-2" edge="1" parent="aca_box" source="svc_scene" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="svc_extract" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_scene" parent="aca_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/azure2/other/Worker_Container_App.svg;" value="&lt;b&gt;Scene&lt;br&gt;Service&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#888&quot;&gt;3D Generation&lt;/font&gt;" vertex="1">
+          <mxGeometry height="53" width="55" x="181" y="102" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_chat" parent="aca_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/azure2/other/Worker_Container_App.svg;" value="&lt;b&gt;Copilot&lt;br&gt;Service&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#888&quot;&gt;Spatial Q&amp;amp;A&lt;/font&gt;" vertex="1">
+          <mxGeometry height="53" width="55" x="288" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_val" parent="aca_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/azure2/other/Worker_Container_App.svg;" value="&lt;b&gt;Valuation&lt;br&gt;Service&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#888&quot;&gt;data.gov.sg&lt;/font&gt;" vertex="1">
+          <mxGeometry height="53" width="55" x="349" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_box" parent="1" style="swimlane;startSize=20;fillColor=#E8EAF6;strokeColor=#3F51B5;html=1;rounded=1;container=1;pointerEvents=0;fontSize=10;" value="&lt;b&gt;Microsoft Foundry&lt;/b&gt;" vertex="1">
+          <mxGeometry height="194" width="230" x="730" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_icon" parent="ai_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/azure2/ai_machine_learning/Cognitive_Services.svg;" value="Content&lt;br&gt;Understanding" vertex="1">
+          <mxGeometry height="35" width="50" x="15" y="22" as="geometry" />
+        </mxCell>
+        <mxCell id="cu_detail" parent="ai_box" style="text;html=1;fontSize=9;align=left;" value="&lt;b&gt;OCR + Layout&lt;/b&gt;&lt;br&gt;floorplan-analyzer-v4&lt;br&gt;Dims + Room Labels + Shape Hints" vertex="1">
+          <mxGeometry height="40" width="155" x="70" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="gpt_icon" parent="ai_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/azure2/ai_machine_learning/Cognitive_Services.svg;" value="Azure&lt;br&gt;OpenAI" vertex="1">
+          <mxGeometry height="35" width="50" x="15" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="gpt_detail" parent="ai_box" style="text;html=1;fontSize=9;align=left;" value="&lt;b&gt;GPT-5.4 Vision&lt;/b&gt;&lt;br&gt;Structured layout inference" vertex="1">
+          <mxGeometry height="40" width="155" x="65" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="gpt_chat_icon" parent="ai_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/azure2/ai_machine_learning/Cognitive_Services.svg;" value="Azure&lt;br&gt;OpenAI" vertex="1">
+          <mxGeometry height="35" width="50" x="15" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="gpt_chat_detail" parent="ai_box" style="text;html=1;fontSize=9;align=left;" value="&lt;b&gt;GPT-5 Chat&lt;/b&gt;&lt;br&gt;Copilot, Accessibility Reports&lt;br&gt;Spatial reasoning" vertex="1">
+          <mxGeometry height="40" width="155" x="70" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="luJVZrjfDVgGcxhEX3kJ-1" parent="ai_box" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;aspect=fixed;image=data:image/svg+xml,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB2aWV3Qm94PSIwIDAgMTggMTgiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCI+JiN4YTsgIDxkZWZzPiYjeGE7ICAgIDxzdHlsZT4mI3hhOyAgICAgIC5jbHMtMSB7JiN4YTsgICAgICAgIGZpbGw6IG5vbmU7JiN4YTsgICAgICB9JiN4YTsmI3hhOyAgICAgIC5jbHMtMSwgLmNscy0yLCAuY2xzLTMsIC5jbHMtNCB7JiN4YTsgICAgICAgIHN0cm9rZS13aWR0aDogMHB4OyYjeGE7ICAgICAgfSYjeGE7JiN4YTsgICAgICAuY2xzLTIgeyYjeGE7ICAgICAgICBmaWxsOiB1cmwoI2xpbmVhci1ncmFkaWVudCk7JiN4YTsgICAgICB9JiN4YTsmI3hhOyAgICAgIC5jbHMtMiwgLmNscy0zIHsmI3hhOyAgICAgICAgZmlsbC1ydWxlOiBldmVub2RkOyYjeGE7ICAgICAgfSYjeGE7JiN4YTsgICAgICAuY2xzLTMgeyYjeGE7ICAgICAgICBmaWxsOiB1cmwoI2xpbmVhci1ncmFkaWVudC0zKTsmI3hhOyAgICAgIH0mI3hhOyYjeGE7ICAgICAgLmNscy00IHsmI3hhOyAgICAgICAgZmlsbDogdXJsKCNsaW5lYXItZ3JhZGllbnQtMik7JiN4YTsgICAgICB9JiN4YTsgICAgPC9zdHlsZT4mI3hhOyAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudCIgeDE9IjEyLjc2IiB5MT0iMTEuOTciIHgyPSIxMC4yNiIgeTI9IjEuOTYiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzcxMjU3NSIvPiYjeGE7ICAgICAgPHN0b3Agb2Zmc2V0PSIuMDkiIHN0b3AtY29sb3I9IiM5YTI4ODQiLz4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iLjE4IiBzdG9wLWNvbG9yPSIjYmYyYzkyIi8+JiN4YTsgICAgICA8c3RvcCBvZmZzZXQ9Ii4yNyIgc3RvcC1jb2xvcj0iI2RhMmU5YyIvPiYjeGE7ICAgICAgPHN0b3Agb2Zmc2V0PSIuMzQiIHN0b3AtY29sb3I9IiNlYjMwYTIiLz4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iLjQiIHN0b3AtY29sb3I9IiNmMTMxYTUiLz4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iLjUiIHN0b3AtY29sb3I9IiNlYzMwYTMiLz4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iLjYxIiBzdG9wLWNvbG9yPSIjZGYyZjllIi8+JiN4YTsgICAgICA8c3RvcCBvZmZzZXQ9Ii43MiIgc3RvcC1jb2xvcj0iI2M5MmQ5NiIvPiYjeGE7ICAgICAgPHN0b3Agb2Zmc2V0PSIuODMiIHN0b3AtY29sb3I9IiNhYTJhOGEiLz4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iLjk1IiBzdG9wLWNvbG9yPSIjODMyNjdjIi8+JiN4YTsgICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM3MTI1NzUiLz4mI3hhOyAgICA8L2xpbmVhckdyYWRpZW50PiYjeGE7ICAgIDxsaW5lYXJHcmFkaWVudCBpZD0ibGluZWFyLWdyYWRpZW50LTIiIHgxPSIxMy43MSIgeTE9IjEuOCIgeDI9IjEzLjcxIiB5Mj0iMTUuOTIiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2RhN2VkMCIvPiYjeGE7ICAgICAgPHN0b3Agb2Zmc2V0PSIuMDgiIHN0b3AtY29sb3I9IiNiMTdiZDUiLz4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iLjE5IiBzdG9wLWNvbG9yPSIjODc3OGRiIi8+JiN4YTsgICAgICA8c3RvcCBvZmZzZXQ9Ii4zIiBzdG9wLWNvbG9yPSIjNjI3NmUxIi8+JiN4YTsgICAgICA8c3RvcCBvZmZzZXQ9Ii40MSIgc3RvcC1jb2xvcj0iIzQ1NzRlNSIvPiYjeGE7ICAgICAgPHN0b3Agb2Zmc2V0PSIuNTQiIHN0b3AtY29sb3I9IiMyZTcyZTgiLz4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iLjY3IiBzdG9wLWNvbG9yPSIjMWQ3MWViIi8+JiN4YTsgICAgICA8c3RvcCBvZmZzZXQ9Ii44MSIgc3RvcC1jb2xvcj0iIzE0NzFlYyIvPiYjeGE7ICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMTE3MWVkIi8+JiN4YTsgICAgPC9saW5lYXJHcmFkaWVudD4mI3hhOyAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudC0zIiB4MT0iMTIuODYiIHkxPSIyLjEyIiB4Mj0iMy41IiB5Mj0iMTcuMTMiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2RhN2VkMCIvPiYjeGE7ICAgICAgPHN0b3Agb2Zmc2V0PSIuMDUiIHN0b3AtY29sb3I9IiNiNzdiZDQiLz4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iLjExIiBzdG9wLWNvbG9yPSIjOTA3OWRhIi8+JiN4YTsgICAgICA8c3RvcCBvZmZzZXQ9Ii4xOCIgc3RvcC1jb2xvcj0iIzZlNzdkZiIvPiYjeGE7ICAgICAgPHN0b3Agb2Zmc2V0PSIuMjUiIHN0b3AtY29sb3I9IiM1MTc1ZTMiLz4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iLjMzIiBzdG9wLWNvbG9yPSIjMzk3M2U3Ii8+JiN4YTsgICAgICA8c3RvcCBvZmZzZXQ9Ii40MiIgc3RvcC1jb2xvcj0iIzI3NzJlOSIvPiYjeGE7ICAgICAgPHN0b3Agb2Zmc2V0PSIuNTQiIHN0b3AtY29sb3I9IiMxYTcxZWIiLz4mI3hhOyAgICAgIDxzdG9wIG9mZnNldD0iLjY4IiBzdG9wLWNvbG9yPSIjMTM3MWVjIi8+JiN4YTsgICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMxMTcxZWQiLz4mI3hhOyAgICA8L2xpbmVhckdyYWRpZW50PiYjeGE7ICA8L2RlZnM+JiN4YTsgIDxwYXRoIGNsYXNzPSJjbHMtMiIgZD0ibTExLjUyLDEuNTljLjQ0LDAsLjgzLjMzLjk3Ljgxcy45NiwzLjQ1Ljk2LDMuNDV2NS45aC0yLjk3bC4wNi0xMC4xN2guOThaIi8+JiN4YTsgIDxwYXRoIGNsYXNzPSJjbHMtNCIgZD0ibTE1Ljg4LDYuMmMwLS4yMS0uMTctLjM3LS4zNy0uMzdoLTEuNzVjLTEuMjMsMC0yLjIzLDEtMi4yMywyLjIzdjMuN2gyLjEyYzEuMjMsMCwyLjIzLTEsMi4yMy0yLjIzdi0zLjMzWiIvPiYjeGE7ICA8cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Im0xMS41MiwxLjU5Yy0uMzQsMC0uNjEuMjctLjYxLjYxbC0uMDYsMTEuMjNjMCwxLjY0LTEuMzMsMi45Ny0yLjk3LDIuOTdIMi40OWMtLjI2LDAtLjQzLS4yNS0uMzUtLjQ5TDYuNDYsMy41OGMuNDItMS4xOSwxLjU0LTEuOTksMi44LTEuOTloMi4yN1oiLz4mI3hhOyAgPHJlY3QgY2xhc3M9ImNscy0xIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiLz4mI3hhOzwvc3ZnPg==" value="" vertex="1">
+          <mxGeometry height="24" width="24" x="206" y="-2" as="geometry" />
+        </mxCell>
+        <mxCell id="data_box" parent="1" style="swimlane;startSize=20;fillColor=#E8F5E9;strokeColor=#2E7D32;html=1;rounded=1;container=1;pointerEvents=0;fontSize=10;" value="&lt;b&gt;Data &amp;amp; Storage&lt;/b&gt;" vertex="1">
+          <mxGeometry height="137" width="230" x="730" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="blob_icon" parent="data_box" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.storage_blob;fontSize=9;" value="Blob Storage" vertex="1">
+          <mxGeometry height="36" width="40" x="20" y="24" as="geometry" />
+        </mxCell>
+        <mxCell id="blob_detail" parent="data_box" style="text;html=1;fontSize=9;align=left;" value="&lt;b&gt;Floor plans + SceneGraphs&lt;/b&gt;&lt;br&gt;Image uploads, JSON scenes" vertex="1">
+          <mxGeometry height="30" width="155" x="70" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cosmos_icon" parent="data_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/azure2/databases/Azure_Cosmos_DB.svg;" value="Cosmos DB" vertex="1">
+          <mxGeometry height="40" width="40" x="20" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="cosmos_detail" parent="data_box" style="text;html=1;fontSize=9;align=left;" value="&lt;b&gt;Scene metadata + chat history&lt;/b&gt;&lt;br&gt;Gallery, user sessions" vertex="1">
+          <mxGeometry height="30" width="155" x="70" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="ops_box" parent="1" style="swimlane;startSize=20;fillColor=#FCE4EC;strokeColor=#C62828;html=1;rounded=1;container=1;pointerEvents=0;fontSize=10;" value="&lt;b&gt;Operations&lt;/b&gt;" vertex="1">
+          <mxGeometry height="70" width="230" x="730" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="insights_icon" parent="ops_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/azure2/devops/Application_Insights.svg;" value="" vertex="1">
+          <mxGeometry height="43" width="30" x="15" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="insights_detail" parent="ops_box" style="text;html=1;fontSize=9;align=left;" value="&lt;b&gt;App Insights&lt;/b&gt; — traces, metrics, logs" vertex="1">
+          <mxGeometry height="25" width="170" x="50" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sec_box" parent="1" style="swimlane;startSize=20;fillColor=#F3E5F5;strokeColor=#7B1FA2;html=1;rounded=1;container=1;pointerEvents=0;fontSize=10;" value="&lt;b&gt;Security&lt;/b&gt;" vertex="1">
+          <mxGeometry height="70" width="250" x="291" y="451" as="geometry" />
+        </mxCell>
+        <mxCell id="kv2_icon" parent="sec_box" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=9;image=img/lib/azure2/security/Key_Vaults.svg;" value="" vertex="1">
+          <mxGeometry height="35" width="35" x="15" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sec_detail" parent="sec_box" style="text;html=1;fontSize=9;align=left;" value="&lt;b&gt;Key Vault&lt;/b&gt; — API keys, connection strings&lt;br&gt;&lt;b&gt;Entra ID&lt;/b&gt; — managed identity, RBAC" vertex="1">
+          <mxGeometry height="35" width="190" x="55" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_data" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9C27B0;fontColor=#fff;strokeColor=none;fontSize=10;" value="&lt;b&gt;data.gov.sg&lt;/b&gt;&lt;br&gt;HDB Resale API" vertex="1">
+          <mxGeometry height="40" width="160" x="749" y="483" as="geometry" />
+        </mxCell>
+        <mxCell id="e_user_fd" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#0078D4;" target="fd">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="7" y="138.48571428571427" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_fd_swa" edge="1" parent="1" source="fd" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#0078D4;" target="nextjs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fd_aca" edge="1" parent="1" source="fd" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#E65100;" target="svc_extract" value="API">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="85" y="189" />
+              <mxPoint x="85" y="336" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_ext_cu" edge="1" parent="1" source="svc_extract" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#3F51B5;" target="cu_icon" value="OCR">
+          <mxGeometry relative="1" x="0.7298" y="2" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="267" y="221" />
+              <mxPoint x="525" y="221" />
+              <mxPoint x="525" y="102" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_ext_gpt" edge="1" parent="1" source="svc_extract" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#3F51B5;" target="gpt_icon" value="Vision">
+          <mxGeometry relative="1" x="0.6886" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="267" y="308" />
+              <mxPoint x="480" y="308" />
+              <mxPoint x="480" y="152" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_chat_gpt" edge="1" parent="1" source="svc_chat" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#3F51B5;" target="gpt_chat_icon" value="Chat">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="707" y="283" />
+              <mxPoint x="707" y="202" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_scene_blob" edge="1" parent="1" source="svc_scene" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#2E7D32;dashed=1;" target="blob_icon" value="Store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_scene_cosmos" edge="1" parent="1" source="svc_scene" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1;strokeColor=#2E7D32;dashed=1;" target="cosmos_icon">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_val_ext" edge="1" parent="1" source="svc_val" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=1.5;strokeColor=#9C27B0;dashed=1;" target="ext_data" value="Resale data">
+          <mxGeometry relative="1" x="0.1902" y="-11" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="709" y="394" />
+              <mxPoint x="709" y="505" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="region_note" parent="1" style="text;html=1;fontSize=10;fillColor=#E3F2FD;strokeColor=#0078D4;rounded=1;align=center;" value="&lt;b&gt;Region:&lt;/b&gt; Southeast Asia (primary)  |  East US 2 (AI Foundry)&lt;br&gt;&lt;b&gt;Auth:&lt;/b&gt; Managed Identity via Entra ID  |  &lt;b&gt;IaC:&lt;/b&gt; Bicep" vertex="1">
+          <mxGeometry height="35" width="370" x="301" y="536" as="geometry" />
+        </mxCell>
+        <mxCell id="e_scene_fe" edge="1" parent="1" source="svc_scene" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#34A853;" target="r3f" value="SceneGraph&lt;br&gt;JSON" vertex="1">
+          <mxGeometry relative="1" x="0.3365" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="434" y="168" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="luJVZrjfDVgGcxhEX3kJ-3" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#232F3D;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.user;" value="Users" vertex="1">
+          <mxGeometry height="78" width="78" x="-64" y="98.5" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

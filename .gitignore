@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Next.js
+.next/
+out/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+*.pem
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Playwright test artifacts
+.playwright-mcp/
+qa-*.png
+
+# Python
+*.so
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Package locks (keep package-lock.json but ignore others)
+# uv.lock
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+*.tgz
+
+# Squad ephemeral state
+.squad/.first-run
+.squad/orchestration-log/
+.squad/log/
+.squad/decisions/inbox/
+.playwright-mcp/
+spatialviz_backend.egg-info/
+docs/DEMO_SCRIPT.md
+docs/Demo-Walkthrough.mov
+*.mov
