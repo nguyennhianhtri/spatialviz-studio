@@ -1,4 +1,7 @@
 import { create } from "zustand";
+import { useDesignStore } from "./design-store";
+import { catalog, furnishRoom } from "../lib/interior-design";
+import { carryLayoutInteriors } from "../lib/layout-interiors";
 import { parseProject, serializeProject } from "../components/studio/project";
 import { SAMPLE_SCENE } from "../components/studio/sample-fixture";
 import { sampleLayout } from "../components/studio/sample";
@@ -157,7 +160,7 @@ interface SceneState {
   removeEditorWindow: (id: string) => void;
   selectEditorItem: (id: string | null) => void;
   setStage: (stage: "upload" | "editor" | "viewer") => void;
-  setScene: (scene: SceneGraph) => void;
+  setScene: (scene: SceneGraph) => string | null;
   setProcessing: (processing: boolean, step?: string) => void;
   selectRoom: (roomId: string | null) => void;
   setViewMode: (mode: "orbit" | "walkthrough" | "topdown") => void;
@@ -205,7 +208,24 @@ export const useSceneStore = create<SceneState>((set, get) => {
     removeEditorWindow: id => edit({editorWindows:get().editorWindows.filter(w=>w.id !== id)}),
     selectEditorItem: selectedEditorItem => set({selectedEditorItem}),
     setStage: stage => set({stage}),
-    setScene: scene => set({scene, stage:"viewer", sceneDirty:false, isProcessing:false, processingStep:""}),
+    setScene: scene => {
+      const previous=get().scene;
+      if(previous){
+        useDesignStore.getState().initialize(previous);
+        const design=useDesignStore.getState();
+        const {items,finishes,conflicts}=carryLayoutInteriors(design,previous,scene);
+        if(conflicts.length){
+          const names=conflicts.slice(0,5).map(item=>`${previous.rooms.find(r=>r.id===item.roomId)?.label||item.roomId}: ${catalog.find(c=>c.kind===item.kind)?.name||item.kind}`);
+          return `Your furnishings are safe. These pieces no longer fit the corrected rooms: ${names.join('; ')}${conflicts.length>5?`; and ${conflicts.length-5} more`:''}. Adjust the plan, or return to your previous 3D design to move or remove them, then retry.`;
+        }
+        if(!design.load({items,finishes},scene))return 'Your furnishings are safe. Could not apply this layout; the previous 3D design is unchanged.';
+      }else{
+        // New extraction/editor-only project: no continuity with the last design.
+        useDesignStore.getState().load({items:scene.rooms.flatMap(r=>furnishRoom(r,scene.doors)),finishes:{}},scene);
+      }
+      set({scene, stage:"viewer", sceneDirty:false, isProcessing:false, processingStep:""});
+      return null;
+    },
     setProcessing: (isProcessing, processingStep="") => set({isProcessing,processingStep}),
     selectRoom: selectedRoom => set({selectedRoom}),
     setViewMode: viewMode => set({viewMode}),
