@@ -4,11 +4,14 @@ import json
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 from PIL import Image, ImageStat
-parser=argparse.ArgumentParser();parser.add_argument('--url',default='http://127.0.0.1:3310');parser.add_argument('--out',default='/Users/tringuyen/.hermes/cache/spatialviz-comparison');a=parser.parse_args();out=Path(a.out);out.mkdir(parents=True,exist_ok=True)
+parser=argparse.ArgumentParser();parser.add_argument('--url',default='http://127.0.0.1:3310');parser.add_argument('--frontend',help='Optional compiled frontend; run as python -m scripts.verify_studio to verify without a service');parser.add_argument('--out',default='/Users/tringuyen/.hermes/cache/spatialviz-comparison');a=parser.parse_args();out=Path(a.out);out.mkdir(parents=True,exist_ok=True)
 with sync_playwright() as p:
  browser=p.chromium.launch(channel='chrome',headless=True,args=['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
  page=browser.new_page(viewport={'width':1440,'height':1000},device_scale_factor=1,accept_downloads=True)
  errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+ if a.frontend:
+  from scripts.verify_floor_finishes import mount_build, ORIGIN
+  mount_build(page,a.frontend);a.url=ORIGIN
  page.goto(a.url,wait_until='networkidle');print('Loaded page',flush=True)
  page.get_by_role('button',name='Open sample',exact=True).click()
  page.locator('canvas').wait_for(timeout=45000)

@@ -6,28 +6,12 @@ import type { SceneGraph, RoomDef } from '@/types/scene';
 import { wallSolidSegments, type DerivedEdge, type DoorPlacement, type WindowPlacement } from '@/lib/geometry-engine';
 import { furnishRoom, pointInRoom } from '@/lib/render-furnishing';
 import { renderPalettes, type StylePreset } from '@/lib/render-palette';
+import { floorSurface, floorMaps } from '@/lib/floor-materials';
 import { FurnitureObject } from './scene-objects';
 import { useSceneStore } from '@/store/scene-store';
 import { playerPositionRef, playerKeysRef } from './first-person-controls';
 
-// All finish maps are generated locally. No HDRs, model URLs or web fonts are requested.
-const finishMaps=new Map<string,THREE.DataTexture>();
-function finishMap(kind:string) {
- const cached=finishMaps.get(kind); if(cached) return cached;
- const size=256,data=new Uint8Array(size*size*4);
- for(let y=0;y<size;y++) for(let x=0;x<size;x++) {
-   const index=(y*size+x)*4,plank=Math.floor(y/32);
-   const noise=((x*13+y*113+(x*y)%71)%17)/17;
-   let v=kind==='wood'?239+Math.sin(x*0.09+y*1.8)*3+noise*5+(plank%3)*2:249+noise*4;
-   if(kind==='wood' && (y%32===0 || (x+(plank%2)*128)%256===0)) v=213;
-   if(kind==='tile' && (x%128<2 || y%128<2)) v=224;
-   data[index]=data[index+1]=data[index+2]=v; data[index+3]=255;
- }
- const map=new THREE.DataTexture(data,size,size,THREE.RGBAFormat);map.wrapS=map.wrapT=THREE.RepeatWrapping;
- map.magFilter=THREE.LinearFilter; map.minFilter=THREE.LinearMipmapLinearFilter;map.generateMipmaps=true;
- map.colorSpace=THREE.SRGBColorSpace;map.repeat.set(kind==='wood'?0.7:0.9,kind==='wood'?0.7:0.9);map.needsUpdate=true;
- finishMaps.set(kind,map);return map;
-}
+
 export function roomAnchor(room:RoomDef):[number,number] {
  const pts=room.polygon;if(!pts.length) return [0,0];
  const minX=Math.min(...pts.map(p=>p[0])),maxX=Math.max(...pts.map(p=>p[0])),minZ=Math.min(...pts.map(p=>p[1])),maxZ=Math.max(...pts.map(p=>p[1]));
@@ -51,11 +35,11 @@ function RoomLabel({room}:{room:RoomDef}) {
 }
 export function RoomFloor({room,isSelected,onSelect,stylePreset='warm',showLabels=false}:{room:RoomDef;isSelected:boolean;onSelect:()=>void;stylePreset?:StylePreset;showLabels?:boolean}) {
  const shape=useMemo(()=>{const s=new THREE.Shape();room.polygon.forEach((p,i)=>i?s.lineTo(p[0],-p[1]):s.moveTo(p[0],-p[1]));s.closePath();return s;},[room.polygon]);
- const wet=['kitchen','bathroom','wc','balcony','yard'].includes(room.type)||/tile|stone|concrete/.test(room.floor_material);
+ const surface=floorSurface(room.floor_material,room.type);
  const palette=renderPalettes[stylePreset];
  return <group onClick={e=>{e.stopPropagation();onSelect();}}>
    <mesh rotation={[-Math.PI/2,0,0]} position={[0,-0.16,0]} castShadow receiveShadow><extrudeGeometry args={[shape,{depth:0.16,bevelEnabled:false}]}/><meshStandardMaterial color={palette.cut} roughness={0.94}/></mesh>
-   <mesh rotation={[-Math.PI/2,0,0]} position={[0,0.007,0]} receiveShadow><shapeGeometry args={[shape]}/><meshStandardMaterial color={room.floor_material==='wood_dark'?'#786047':room.floor_material==='concrete'?'#b1ad9e':wet?palette.stone:palette.floor} map={finishMap(wet?'tile':'wood')} roughness={wet?0.68:0.86}/></mesh>
+   <mesh rotation={[-Math.PI/2,0,0]} position={[0,0.007,0]} receiveShadow><shapeGeometry args={[shape]}/><meshStandardMaterial color={room.floor_material==='wood_dark'?'#786047':surface==='concrete'?'#b1ad9e':surface==='tile'?palette.stone:palette.floor} {...floorMaps(surface)}/></mesh>
    {isSelected&&<mesh rotation={[-Math.PI/2,0,0]} position={[0,0.016,0]}><shapeGeometry args={[shape]}/><meshBasicMaterial color={palette.accent} transparent opacity={0.25} depthWrite={false}/></mesh>}
    {showLabels&&<RoomLabel room={room}/>}
  </group>;
