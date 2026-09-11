@@ -1,208 +1,60 @@
 "use client";
-
-import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
-import { Upload, FileImage, Loader2, CheckCircle2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useSceneStore } from "@/store/scene-store";
-import toast from "react-hot-toast";
-import type { SceneGraph } from "@/types/scene";
-import type { ExtractionResult } from "@/store/scene-store";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-const STEPS = [
-  "Uploading floor plan...",
-  "Running Content Understanding OCR...",
-  "Classifying dimensions spatially...",
-  "Inferring room layout with GPT-5...",
-  "Building 2D layout...",
-  "Done!",
-];
-
+import { useEffect, useRef, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { ArrowUpRight, Upload, FileImage, Loader2, ArrowRight, RotateCcw, X } from 'lucide-react';
+import { useSceneStore, type ExtractionResult } from '@/store/scene-store';
+import { MAX_FILE_BYTES, validateFloorPlanFile } from './studio/project';
+import { requestJson } from './studio/requests';
+import { SampleDrawing } from './studio/plan-drawing';
 export function UploadPanel() {
-  const { setScene, setExtraction, setProcessing, isProcessing, processingStep } = useSceneStore();
-  const [currentStep, setCurrentStep] = useState(0);
-
-  const handleUpload = useCallback(
-    async (file: File) => {
-      setProcessing(true, STEPS[0]);
-      setCurrentStep(0);
-
-      const formData = new FormData();
-      formData.append("file", file);
-
-      try {
-        // Step progression while waiting for CU + GPT-5 inference
-        const stepTimer = setInterval(() => {
-          setCurrentStep((prev) => {
-            const next = Math.min(prev + 1, STEPS.length - 2);
-            setProcessing(true, STEPS[next]);
-            return next;
-          });
-        }, 2500);
-
-        const res = await fetch(`${API_URL}/api/extract`, {
-          method: "POST",
-          body: formData,
-        });
-
-        clearInterval(stepTimer);
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({ detail: "Server error" }));
-          throw new Error(err.detail || "Extraction failed");
-        }
-
-        const data: ExtractionResult = await res.json();
-
-        setCurrentStep(STEPS.length - 1);
-        setProcessing(true, STEPS[STEPS.length - 1]);
-
-        setTimeout(() => {
-          setExtraction(data);
-          const rooms = data.inferred_layout?.rooms || [];
-          const bedrooms = rooms.filter((r) => r.type === "bedroom").length;
-          const hdbRoomCount = bedrooms + 1; // HDB convention: bedrooms + 1
-          const cuTime = data.cu_time_ms ? `CU: ${(data.cu_time_ms / 1000).toFixed(1)}s` : "";
-          const gptTime = data.inference_time_ms ? ` | GPT-5: ${(data.inference_time_ms / 1000).toFixed(1)}s` : "";
-          toast.success(
-            `Extracted ${hdbRoomCount}-room flat (${bedrooms} bedrooms) in ${(data.processing_time_ms / 1000).toFixed(1)}s (${cuTime}${gptTime})`
-          );
-        }, 500);
-      } catch (err) {
-        setProcessing(false);
-        setCurrentStep(0);
-        toast.error(err instanceof Error ? err.message : "Upload failed");
-      }
-    },
-    [setExtraction, setProcessing]
-  );
-
-  const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      const file = acceptedFiles[0];
-      if (file) handleUpload(file);
-    },
-    [handleUpload]
-  );
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/png": [".png"],
-      "image/jpeg": [".jpg", ".jpeg"],
-      "application/pdf": [".pdf"],
-    },
-    maxFiles: 1,
-    maxSize: 20 * 1024 * 1024,
-    disabled: isProcessing,
-  });
-
-  const loadDemo = async () => {
-    setProcessing(true, "Loading demo scene...");
-    try {
-      const res = await fetch(`${API_URL}/api/demo-scene`);
-      if (!res.ok) throw new Error("Failed to load demo");
-      const scene: SceneGraph = await res.json();
-      setScene(scene);
-      toast.success("Demo scene loaded!");
-    } catch {
-      setProcessing(false);
-      toast.error("Could not load demo scene");
-    }
-  };
-
-  return (
-    <div className="flex flex-col items-center gap-8 px-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold tracking-tight">
-          Transform 2D Floor Plans into
-          <br />
-          <span className="text-[var(--accent)]">Interactive 3D Spaces</span>
-        </h2>
-        <p className="mt-3 max-w-lg text-[var(--text-secondary)]">
-          Upload a floor plan and watch AI convert it into a walkable 3D
-          visualization in seconds. Powered by GPT-5 vision and Three.js.
-        </p>
-      </div>
-
-      <AnimatePresence mode="wait">
-        {isProcessing ? (
-          <motion.div
-            key="processing"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="flex w-full max-w-lg flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-8"
-          >
-            <div className="flex items-center gap-3">
-              <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
-              <span className="text-sm font-medium">{processingStep}</span>
-            </div>
-            <div className="flex flex-col gap-2">
-              {STEPS.map((step, i) => (
-                <div key={step} className="flex items-center gap-2 text-sm">
-                  {i < currentStep ? (
-                    <CheckCircle2 className="h-4 w-4 text-[var(--success)]" />
-                  ) : i === currentStep ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" />
-                  ) : (
-                    <div className="h-4 w-4 rounded-full border border-[var(--border)]" />
-                  )}
-                  <span
-                    className={
-                      i <= currentStep
-                        ? "text-[var(--text-primary)]"
-                        : "text-[var(--text-secondary)]"
-                    }
-                  >
-                    {step}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="dropzone"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            {...getRootProps()}
-            className={`flex w-full max-w-lg cursor-pointer flex-col items-center gap-4 rounded-2xl border-2 border-dashed p-12 transition-colors ${isDragActive
-                ? "border-[var(--accent)] bg-[var(--accent)]/5"
-                : "border-[var(--border)] bg-[var(--bg-card)] hover:border-[var(--accent)]/50"
-              }`}
-          >
-            <input {...getInputProps()} />
-            <div className="rounded-xl bg-[var(--accent)]/10 p-4">
-              {isDragActive ? (
-                <FileImage className="h-8 w-8 text-[var(--accent)]" />
-              ) : (
-                <Upload className="h-8 w-8 text-[var(--accent)]" />
-              )}
-            </div>
-            <div className="text-center">
-              <p className="font-medium">
-                {isDragActive ? "Drop your floor plan" : "Upload a floor plan"}
-              </p>
-              <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                PNG, JPG, or PDF — up to 20MB
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {!isProcessing && (
-        <button
-          onClick={loadDemo}
-          className="text-sm text-[var(--text-secondary)] underline decoration-dotted underline-offset-4 hover:text-[var(--accent)] transition-colors"
-        >
-          or try a demo floor plan →
-        </button>
-      )}
-    </div>
-  );
+ const store=useSceneStore(); const [file,setFile]=useState<File|null>(null); const [error,setError]=useState(''); const [cancelled,setCancelled]=useState(false); const [dimensionUnit,setDimensionUnit]=useState('mm');
+ const request=useRef<AbortController|null>(null);
+ useEffect(()=>()=>{request.current?.abort();},[]);
+ async function upload(next:File) {
+  const problem=validateFloorPlanFile(next); if(problem){setError(problem);return;}
+  request.current?.abort(); const controller=new AbortController(); request.current=controller;
+  setFile(next);setError('');setCancelled(false);store.setProcessing(true,'Reading your floor plan');
+  const body=new FormData();body.append('file',next);body.append('dimension_unit',dimensionUnit);
+  const timeout=setTimeout(()=>controller.abort('timeout'),300000);
+  try {
+   const started=await requestJson<{id:string}>('/api/extraction-jobs',{method:'POST',body,signal:controller.signal});
+   let data:ExtractionResult|null=null;
+   while(!controller.signal.aborted){
+    const job=await requestJson<{status:string;result?:ExtractionResult;error?:string}>(`/api/extraction-jobs/${encodeURIComponent(started.id)}`,{signal:controller.signal});
+    if(job.status==='failed')throw new Error(job.error||'Could not read this plan. Your previous project is unchanged.');
+    if(job.status==='complete'){data=job.result||null;break;}
+    await new Promise(resolve=>setTimeout(resolve,1000));
+   }
+   if(controller.signal.aborted) return;
+   if(!data || !Array.isArray(data.dimensions) || !Array.isArray(data.room_labels)) throw new Error('The service returned an unreadable layout. Please retry or choose a clearer plan.');
+   store.setExtraction(data);store.setProjectName(next.name.replace(/\.[^.]+$/,''));
+  } catch(e) {
+   if(controller.signal.aborted){if(controller.signal.reason==='timeout')setError('Reading this plan timed out. Your file is still selected; try again.');}
+   else setError(e instanceof Error?e.message:'Could not read this plan. Your previous work is unchanged.');
+  } finally {clearTimeout(timeout);if(request.current===controller){request.current=null;useSceneStore.getState().setProcessing(false);}}
+ }
+ function cancel(){request.current?.abort();request.current=null;store.setProcessing(false);setCancelled(true);}
+ const {getRootProps,getInputProps,isDragActive}=useDropzone({accept:{'image/png':['.png'],'image/jpeg':['.jpg','.jpeg']},maxFiles:1,maxSize:MAX_FILE_BYTES,disabled:store.isProcessing,onDrop:accepted=>{if(accepted[0])void upload(accepted[0]);},onDropRejected:rejections=>{const code=rejections[0]?.errors[0]?.code;setError(code==='file-too-large'?'Choose a file smaller than 20 MB.':code==='too-many-files'?'Drop one floor plan at a time.':'Use a PNG or JPG floor plan.');}});
+ return <div className="upload-workspace">
+  <section className="command-panel">
+   <div className="eyebrow">YOUR DESIGN DESK</div><h1>A new perspective<br/>on your space.</h1><p className="intro-copy">Start with a floor plan.<br/>Make it a place you can explore.</p>
+   <div {...getRootProps()} className={`upload-drop ${isDragActive?'drag-active':''} ${store.isProcessing?'is-busy':''}`} role="button" aria-label="Upload a floor plan" aria-disabled={store.isProcessing}>
+    <input {...getInputProps()} aria-label="Choose floor plan file"/>
+    <Upload size={22} strokeWidth={1.4}/><strong>{isDragActive?'Drop your plan here':'Choose a floor plan'}</strong><span>or drag it onto this panel</span><small>PNG or JPG · up to 20 MB</small>
+   </div>
+   <label className="field-label" style={{width:"100%",marginTop:16}}>Dimensions on your plan<select aria-label="Plan dimension units" disabled={store.isProcessing} value={dimensionUnit} onChange={e=>setDimensionUnit(e.target.value)}><option value="mm">Millimetres · common HDB plans</option><option value="cm">Centimetres</option><option value="m">Metres</option><option value="ft">Feet</option><option value="auto">Read units from the image</option></select></label>
+   {file&&<div className="selected-file"><FileImage size={18}/><span title={file.name}>{file.name}</span></div>}
+   {store.isProcessing&&<div className="waiting-state" role="status"><Loader2 size={18} className="spin"/><div><strong>Reading your floor plan</strong><p>Waiting for the layout service. Complex plans may take a few minutes.</p><button className="text-button" onClick={cancel}><X size={14}/> Cancel request</button></div></div>}
+   {error&&<div className="inline-error" role="alert"><strong>We couldn’t continue</strong><p>{error}</p>{file&&!store.isProcessing&&<button className="text-button" onClick={()=>void upload(file)}><RotateCcw size={14}/> Retry this file</button>}</div>}
+   {cancelled&&!error&&<div className="inline-notice" role="status">Stopped waiting. Your file and previous work are unchanged; the server may finish this reading in the background.<button className="text-button" onClick={()=>file&&void upload(file)}>Try again <ArrowRight size={14}/></button></div>}
+   <div className="command-note"><span className="eyebrow">A LITTLE PREPARATION</span><p>A straight, clear plan with visible room dimensions works best. You’ll review the layout before creating your 3D space.</p></div>
+   {(store.scene||store.editorRooms.length>0)&&<button disabled={store.isProcessing} className="secondary-button" onClick={()=>store.setStage(store.scene&&!store.sceneDirty?'viewer':'editor')}>Return to current project <ArrowRight size={15}/></button>}
+  </section>
+  <section className="sample-workspace" aria-label="Sample project preview">
+   <div className="workspace-caption"><span className="eyebrow">THE POSSIBILITIES, IN PLAN</span><span className="status-pill">Illustrative sample</span></div>
+   <div className="sample-art"><div className="drawing-cross top-left"/><div className="drawing-cross bottom-right"/><SampleDrawing perspective/><span className="drawing-annotation">SPACE / LIGHT / POSSIBILITY</span></div>
+   <div className="sample-caption"><div><div className="eyebrow">EXPLORE A FINISHED EXAMPLE</div><h2>The courtyard apartment</h2><p>Warm materials. Open living. Room to imagine.</p></div><button className="primary-button" disabled={store.isProcessing} onClick={()=>store.loadSample()}>Open sample <ArrowUpRight size={17}/></button></div>
+   <div className="sample-footnote">Sample project · works without the layout service · not an uploaded result</div>
+  </section>
+ </div>;
 }

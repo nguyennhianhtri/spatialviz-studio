@@ -1,4 +1,7 @@
 import { create } from "zustand";
+import { parseProject, serializeProject } from "../components/studio/project";
+import { SAMPLE_SCENE } from "../components/studio/sample-fixture";
+import { sampleLayout } from "../components/studio/sample";
 import type { SceneGraph } from "@/types/scene";
 
 /* ── Types for the 2D editor extraction data ─────────────────────────── */
@@ -30,6 +33,8 @@ export interface ExtractionResult {
   image_base64: string;
   image_mime: string;
   processing_time_ms: number;
+  warnings?: string[];
+  source_hash?: string;
   cu_time_ms?: number;
   inference_time_ms?: number;
   /** GPT-5 inferred layout from CU data + image */
@@ -99,7 +104,23 @@ export interface EditorWindow {
 
 /* ── Store ────────────────────────────────────────────────────────────── */
 
+type LayoutSnapshot = {editorRooms: EditorRoom[]; editorDoors: EditorDoor[]; editorWindows: EditorWindow[]};
 interface SceneState {
+  past: LayoutSnapshot[];
+  future: LayoutSnapshot[];
+  undo: () => void;
+  redo: () => void;
+  projectName: string;
+  sourceKind: "upload" | "sample";
+  sceneDirty: boolean;
+  stylePreset: "warm" | "soft" | "mono";
+  showFurniture: boolean;
+  cutaway: boolean;
+  showLabels: boolean;
+  setAppearance: (updates: Partial<Pick<SceneState, "stylePreset" | "showFurniture" | "cutaway" | "showLabels">>) => void;
+  setProjectName: (name: string) => void;
+  exportProject: () => string;
+  importProject: (text: string) => void;
   // Flow stage: "upload" → "editor" → "viewer"
   stage: "upload" | "editor" | "viewer";
 
@@ -121,6 +142,7 @@ interface SceneState {
   dayMode: "day" | "night";
 
   // Actions
+  loadSample: () => void;
   setExtraction: (data: ExtractionResult) => void;
   setEditorRooms: (rooms: EditorRoom[]) => void;
   setEditorDoors: (doors: EditorDoor[]) => void;
@@ -143,75 +165,51 @@ interface SceneState {
   reset: () => void;
 }
 
-export const useSceneStore = create<SceneState>((set) => ({
-  stage: "upload",
-  extraction: null,
-  editorRooms: [],
-  editorDoors: [],
-  editorWindows: [],
-  selectedEditorItem: null,
-  scene: null,
-  isProcessing: false,
-  processingStep: "",
-  selectedRoom: null,
-  viewMode: "orbit",
-  dayMode: "day",
-
-  setExtraction: (extraction) =>
-    set({ extraction, stage: "editor", isProcessing: false, processingStep: "" }),
-  setEditorRooms: (editorRooms) => set({ editorRooms }),
-  setEditorDoors: (editorDoors) => set({ editorDoors }),
-  setEditorWindows: (editorWindows) => set({ editorWindows }),
-  updateEditorRoom: (id, updates) =>
-    set((s) => ({
-      editorRooms: s.editorRooms.map((r) =>
-        r.id === id ? { ...r, ...updates } : r
-      ),
-    })),
-  removeEditorRoom: (id) =>
-    set((s) => ({ editorRooms: s.editorRooms.filter((r) => r.id !== id) })),
-  addEditorDoor: (door) =>
-    set((s) => ({ editorDoors: [...s.editorDoors, door] })),
-  updateEditorDoor: (id, updates) =>
-    set((s) => ({
-      editorDoors: s.editorDoors.map((d) =>
-        d.id === id ? { ...d, ...updates } : d
-      ),
-    })),
-  removeEditorDoor: (id) =>
-    set((s) => ({ editorDoors: s.editorDoors.filter((d) => d.id !== id) })),
-  addEditorWindow: (win) =>
-    set((s) => ({ editorWindows: [...s.editorWindows, win] })),
-  updateEditorWindow: (id, updates) =>
-    set((s) => ({
-      editorWindows: s.editorWindows.map((w) =>
-        w.id === id ? { ...w, ...updates } : w
-      ),
-    })),
-  removeEditorWindow: (id) =>
-    set((s) => ({ editorWindows: s.editorWindows.filter((w) => w.id !== id) })),
-  selectEditorItem: (selectedEditorItem) => set({ selectedEditorItem }),
-  setStage: (stage) => set({ stage }),
-  setScene: (scene) =>
-    set({ scene, stage: "viewer", isProcessing: false, processingStep: "" }),
-  setProcessing: (isProcessing, processingStep = "") =>
-    set({ isProcessing, processingStep }),
-  selectRoom: (selectedRoom) => set({ selectedRoom }),
-  setViewMode: (viewMode) => set({ viewMode }),
-  setDayMode: (dayMode) => set({ dayMode }),
-  reset: () =>
-    set({
-      stage: "upload",
-      extraction: null,
-      editorRooms: [],
-      editorDoors: [],
-      editorWindows: [],
-      selectedEditorItem: null,
-      scene: null,
-      isProcessing: false,
-      processingStep: "",
-      selectedRoom: null,
-      viewMode: "orbit",
-      dayMode: "day",
-    }),
-}));
+const initial = () => ({
+  stage: "upload" as const, projectName: "Untitled space", sourceKind: "upload" as const,
+  extraction: null, editorRooms: [], editorDoors: [], editorWindows: [], selectedEditorItem: null,
+  scene: null, sceneDirty: false, isProcessing: false, processingStep: "", selectedRoom: null,
+  viewMode: "orbit" as const, dayMode: "day" as const, stylePreset: "warm" as const,
+  showFurniture: true, cutaway: true, showLabels: false, past: [], future: [],
+});
+const snapshot = (s: SceneState): LayoutSnapshot => ({editorRooms:s.editorRooms, editorDoors:s.editorDoors, editorWindows:s.editorWindows});
+export const useSceneStore = create<SceneState>((set, get) => {
+  const edit = (updates: Partial<LayoutSnapshot>) => set(s => ({...updates, past:[...s.past.slice(-49), snapshot(s)], future:[], sceneDirty:true}));
+  return {
+    ...initial(),
+    setAppearance: updates => set(updates),
+    setProjectName: projectName => set({projectName}),
+    exportProject: () => serializeProject(get()),
+    importProject: text => {const project = parseProject(text); set({...initial(), ...project});},
+    undo: () => {const s = get(); if (!s.past.length) return; set({...s.past[s.past.length-1], past:s.past.slice(0,-1), future:[snapshot(s),...s.future], sceneDirty:true, selectedEditorItem:null});},
+    redo: () => {const s = get(); if (!s.future.length) return; set({...s.future[0], future:s.future.slice(1), past:[...s.past,snapshot(s)], sceneDirty:true, selectedEditorItem:null});},
+    loadSample: () => set({...initial(), ...sampleLayout(), scene:structuredClone(SAMPLE_SCENE), stage:'viewer', projectName:'The courtyard apartment', sourceKind:'sample'}),
+    setExtraction: extraction => {
+      const layout = extraction.inferred_layout;
+      set({extraction, stage:'editor', isProcessing:false, processingStep:'', sourceKind:'upload', scene:null, sceneDirty:true, past:[], future:[], selectedRoom:null, selectedEditorItem:null,
+        editorRooms:layout?.rooms ?? [],
+        editorDoors:(layout?.doors ?? []).map(d=>({id:d.id,x_mm:d.x_mm,y_mm:d.y_mm,width_mm:d.width_mm,type:['hinged','sliding','main_entrance'].includes(d.type)?d.type as EditorDoor['type']:'hinged',rotation:d.orientation === 'vertical'?90:0})),
+        editorWindows:(layout?.windows ?? []).map(w=>({id:w.id,x_mm:w.x_mm,y_mm:w.y_mm,width_mm:w.width_mm,rotation:w.orientation === 'vertical'?90:0})),
+      });
+    },
+    setEditorRooms: editorRooms => edit({editorRooms}),
+    setEditorDoors: editorDoors => edit({editorDoors}),
+    setEditorWindows: editorWindows => edit({editorWindows}),
+    updateEditorRoom: (id, updates) => edit({editorRooms:get().editorRooms.map(r => r.id === id ? {...r,...updates} : r)}),
+    removeEditorRoom: id => edit({editorRooms:get().editorRooms.filter(r=>r.id !== id)}),
+    addEditorDoor: door => edit({editorDoors:[...get().editorDoors,door]}),
+    updateEditorDoor: (id, updates) => edit({editorDoors:get().editorDoors.map(d=>d.id === id ? {...d,...updates} : d)}),
+    removeEditorDoor: id => edit({editorDoors:get().editorDoors.filter(d=>d.id !== id)}),
+    addEditorWindow: win => edit({editorWindows:[...get().editorWindows,win]}),
+    updateEditorWindow: (id, updates) => edit({editorWindows:get().editorWindows.map(w=>w.id === id ? {...w,...updates} : w)}),
+    removeEditorWindow: id => edit({editorWindows:get().editorWindows.filter(w=>w.id !== id)}),
+    selectEditorItem: selectedEditorItem => set({selectedEditorItem}),
+    setStage: stage => set({stage}),
+    setScene: scene => set({scene, stage:"viewer", sceneDirty:false, isProcessing:false, processingStep:""}),
+    setProcessing: (isProcessing, processingStep="") => set({isProcessing,processingStep}),
+    selectRoom: selectedRoom => set({selectedRoom}),
+    setViewMode: viewMode => set({viewMode}),
+    setDayMode: dayMode => set({dayMode}),
+    reset: () => set(initial()),
+  };
+});
