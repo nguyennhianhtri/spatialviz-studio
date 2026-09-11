@@ -39,6 +39,16 @@ with sync_playwright() as p:
  with page.expect_download() as info:page.get_by_role('button',name='Save PNG',exact=True).click()
  info.value.save_as(str(out/'after-render.png'))
  print('PASS: sample, furniture placement/rotation/colour, floor/wall finishes, portable project export, refresh restore, nonblank PNG, original same-scene import.')
+ editor_project={**project,'stage':'editor','scene':None};editor_project.pop('interiors',None)
+ editor_file=out/'editor-only-project.spatialviz.json';editor_file.write_text(json.dumps(editor_project))
+ page.locator('input[aria-label="Import project JSON"]').set_input_files(str(editor_file))
+ expect(page.get_by_role('button',name='Create 3D space')).to_be_visible()
+ with page.expect_download() as info:page.get_by_role('button',name='Save project copy',exact=True).click()
+ info.value.save_as(str(out/'editor-only-roundtrip.spatialviz.json'))
+ assert json.loads((out/'editor-only-roundtrip.spatialviz.json').read_text())['interiors']=={'items':[],'finishes':{}}
+ page.locator('input[aria-label="Import project JSON"]').set_input_files(str(out/'editor-only-roundtrip.spatialviz.json'))
+ expect(page.get_by_role('button',name='Create 3D space')).to_be_visible()
+ print('PASS: editor-only import→save→reopen does not inherit old furnishings.')
  print('BROWSER ERRORS',errors);assert not errors
  (out/'ui-acceptance.json').write_text(json.dumps({'status':'pass','errors':errors,'png_dimensions':image.size,'png_stddev':ImageStat.Stat(image).stddev},indent=2))
  browser.close()

@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { useDesignStore } from '../store/design-store';
 import { useSceneStore } from '../store/scene-store';
 import { catalog, moveItem, type DesignItem } from '../lib/interior-design';
+import { startFurnitureDrag } from '../lib/furniture-drag';
 import type { RoomDef, SceneGraph } from '../types/scene';
 
 type V3=[number,number,number];
@@ -42,7 +43,7 @@ function EditableItem({item,room}:{item:DesignItem;room:RoomDef}){
  const group=useRef<THREE.Group>(null);const drag=useRef<{x:number;z:number;startX:number;startZ:number}|null>(null);
  const {controls}=useThree() as unknown as {controls?:{enabled:boolean}};
  const spec=catalog.find(c=>c.kind===item.kind)!;
- const down=(e:ThreeEvent<PointerEvent>)=>{if(e.button!==0)return;e.stopPropagation();select(item.id);if(!selected)return;drag.current={x:e.point.x,z:e.point.z,startX:item.x,startZ:item.z};(e.target as unknown as Element).setPointerCapture(e.pointerId);if(controls)controls.enabled=false;};
+ const down=(e:ThreeEvent<PointerEvent>)=>{if(e.button!==0)return;e.stopPropagation();select(item.id);if(!selected)return;drag.current=startFurnitureDrag(e.ray,item);if(!drag.current)return;(e.target as unknown as Element).setPointerCapture(e.pointerId);if(controls)controls.enabled=false;};
  const move=(e:ThreeEvent<PointerEvent>)=>{if(!drag.current)return;e.stopPropagation();const hit=e.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());if(!hit)return;const next=moveItem(item,{x:Math.round((drag.current.startX+hit.x-drag.current.x)*20)/20,z:Math.round((drag.current.startZ+hit.z-drag.current.z)*20)/20},room);if(next&&group.current)group.current.position.set(next.x,0,next.z);};
  const up=(e:ThreeEvent<PointerEvent>)=>{if(!drag.current)return;e.stopPropagation();drag.current=null;if(group.current)update(item.id,{x:group.current.position.x,z:group.current.position.z},room);if(controls)controls.enabled=true;(e.target as unknown as Element).releasePointerCapture(e.pointerId);};
  return <group ref={group} position={[item.x,0,item.z]} rotation={[0,item.rotation*Math.PI/180,0]} scale={item.scale} onPointerDown={down} onPointerMove={move} onPointerUp={up}><FurnitureModel item={item}/>{selected&&<mesh rotation={[-Math.PI/2,0,0]} position={[0,.035,0]}><planeGeometry args={[spec.width+.1,spec.depth+.1]}/><meshBasicMaterial color='#b79258' transparent opacity={.24} depthWrite={false}/></mesh>}</group>;

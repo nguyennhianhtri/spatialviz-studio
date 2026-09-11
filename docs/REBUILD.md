@@ -15,7 +15,7 @@ Replaced the main upload/editor/studio journey and image-extraction pipeline; re
 ## Real execution evidence
 
 - Production build and TypeScript check pass.
-- Frontend: 24 tests pass, including geometry, placement, projects, state, API-error behaviour and autosave.
+- Frontend: 26 tests pass, including geometry, placement, projects, state, API-error behaviour, autosave, editor-only export isolation and floor-plane drag anchoring.
 - Backend: 43 tests pass, including malformed uploads, readiness, model-response validation, jobs, units, opening alignment, geometry precision and bounded correction.
 - Headless Chrome: sample → add/rotate/recolour furnishing → wall/floor changes → project download → refresh → retained finish → nonblank PNG → unchanged original-scene import passes with no page errors.
 - Real **Redhill** and **Tiong Bahru** PNGs each passed browser upload → live Azure vision → source comparison → backend 3D conversion → PNG/project export. Different upload hashes and different layouts retained.
