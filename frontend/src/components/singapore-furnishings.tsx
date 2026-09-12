@@ -1,6 +1,7 @@
 "use client";
 import { RoundedBox } from '@react-three/drei';
 import type { DesignItem } from '../lib/interior-design';
+import { fittedKitchenParts } from '../lib/fitted-kitchen';
 type V=[number,number,number];
 function Box({size,at,color,metal=0,glow=false}:{size:V;at:V;color:string;metal?:number;glow?:boolean}){return <RoundedBox args={size} position={at} radius={Math.min(.012,...size.map(v=>v/4))} smoothness={2} castShadow receiveShadow><meshStandardMaterial color={color} metalness={metal} roughness={metal?.28:.65} emissive={glow?color:'#000000'} emissiveIntensity={glow?.65:0}/></RoundedBox>;}
 function Disc({r,depth,at,color,front=false}:{r:number;depth:number;at:V;color:string;front?:boolean}){return <mesh position={at} rotation={front?[Math.PI/2,0,0]:[0,0,0]} castShadow receiveShadow><cylinderGeometry args={[r,r,depth,32]}/><meshStandardMaterial color={color} roughness={.3} metalness={.2}/></mesh>;}
@@ -26,12 +27,11 @@ export function SingaporeFurnishing({item,ceiling=2.7}:{item:DesignItem;ceiling?
   <Box size={[.22,.025,.1]} at={[-.22,1.091,.1]} color='#ded5c3'/><Box size={[1,.08,.02]} at={[0,.09,.15]} color='#595448'/>
  </group>;
  case 'sg-kitchen':return <group>
-  <Box size={[2.4,.79,.65]} at={[0,.445,0]} color={c}/><Box size={[2.4,.04,.7]} at={[0,.86,0]} color='#e7e2d7'/><Box size={[2.38,.62,.025]} at={[0,1.19,-.326]} color='#eee9de'/>
-  {[-.9,-.3,.3,.9].map(x=><group key={x}><Box size={[.582,.7,.02]} at={[x,.48,.335]} color={c}/><Box size={[.56,.018,.025]} at={[x,.8,.35]} color='#595f54'/><Box size={[.582,.6,.33]} at={[x,1.82,-.167]} color='#ddd7c7'/><Box size={[.56,.012,.015]} at={[x,1.509,.015]} color='#ffe3b0' glow/></group>)}
-  <Box size={[2.3,.08,.02]} at={[0,.065,.3]} color='#50574e'/><Box size={[.63,.012,.44]} at={[-.63,.887,.02]} color='#242d2d'/>
+  {fittedKitchenParts(c).map(({id,...part})=><Box key={id} {...part}/>)}
+  <Box size={[.63,.012,.44]} at={[-.63,.887,.02]} color='#242d2d'/>
   {[-.78,-.47].map(x=><Disc key={x} r={.1} depth={.005} at={[x,.898,.02]} color='#596562'/>)}
   <Box size={[.65,.05,.4]} at={[-.63,1.48,-.08]} color='#626962' metal={.6}/>
-  <Box size={[.52,.012,.4]} at={[.65,.892,.01]} color='#929f9d' metal={.6}/><Box size={[.42,.012,.3]} at={[.65,.9,.01]} color='#4f6865'/>
+  <Disc r={.026} depth={.004} at={[.65,.719,.01]} color='#4c5954'/>
   <Box size={[.025,.27,.025]} at={[.66,1.04,-.22]} color='#a5b5b0' metal={.8}/><Box size={[.025,.025,.17]} at={[.66,1.16,-.145]} color='#a5b5b0' metal={.8}/>
   <Disc r={.105} depth={.14} at={[.1,.98,.06]} color='#ebe6dc'/><Disc r={.108} depth={.02} at={[.1,1.06,.06]} color='#656f66'/>
  </group>;

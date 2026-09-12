@@ -30,5 +30,11 @@ Next improvements should work toward coherent fitted carpentry and realistic ope
 
 The focus direction is captured when requested, so changing a finish or moving furniture does not reset a manually adjusted camera. Existing room finishes, undo/redo and project exports still operate on the complete design. This is a presentation/customisation improvement, not a claim of new materials or photorealism. Private matched whole-home PNGs and separately labelled room-presentation PNGs are verified by `scripts/verify_room_presentation.py`.
 
+## Fitted-kitchen detail and direct editing
+
+The existing compact fitted-kitchen proposal now uses an assembled carcass, recessed toe-kick, cutlery/deep-drawer stack and paired sink doors. Its worktop has a real opening over a stainless basin with side walls, bottom and drain—not a coloured rectangle on a solid slab. Upper-cabinet door reveals and the existing hood, hob and task-light strip remain. The original 2.4 × 0.7 m placement envelope, source architecture, appliance locations and saved design values are unchanged. This refines proposed joinery; it does not infer installed cabinets or redesign the plan.
+
+`Edit an existing furnishing` lists only items in the chosen room, so fitted units can be selected without hitting a small mesh in 3D. Existing colour/position/size controls and Undo apply; no new project format or destructive preset is involved. `scripts/verify_fitted_kitchen.py` captures a matched kitchen view and exercises colour editing, undo/redo, reload and project reimport using a captured real plan. Geometry tests check the actual mesh-part assembly, sink void and original footprint. Independent visual acceptance remains a separate gate.
+
 ## Verification
 `frontend/tests/singapore-design.test.cjs` checks rendered-kind vocabulary, differing proposals, source immutability, portable exports, undo/redo, mounting/opening constraints and sofa/TV orientation. `scripts/verify_singapore_design.py` exercises the real compiled app against a captured uploaded plan through both profile buttons, cancel, source preservation, PNG/project exports, undo/redo, reload and import. Evidence stays in private operator storage, not this public repository.
