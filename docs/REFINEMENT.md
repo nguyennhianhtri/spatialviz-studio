@@ -6,6 +6,13 @@ The owner authorised ongoing improvements following the SolutionBoss / OmniAgent
 ## Loop
 One canonical writer. Read current operator state, Git and newest user feedback first. Inspect the actual rendered output and one real user journey. Pick one high-impact bounded change, implement it, obtain independent read-only review, verify the changed behaviour and actual resulting image, then publish a verified candidate. Record evidence and next priority. Do not keep producing plans/reports instead of improvements. If there is no useful justified work, stay quiet.
 
+### Scheduled execution: durable author/reviewer hand-off
+The scheduled runtime runs delegate_task synchronously. A reviewer terminal invocation previously failed to return despite a 60-second tool timeout, holding the parent until its inactivity watchdog fired. The same test completed in under a second outside that path; this was not evidence of a model-provider outage. Scheduled cycles therefore **must not use delegate_task or spawn nested agents/CLIs**. The tool allowlist excludes delegation.
+
+Use fresh scheduler sessions for the two roles: an `implement` cycle produces the narrow candidate, focused tests and before/after PNGs, sets `phase: review`, and returns; the next fresh cycle is the independent reviewer. A `review` cycle reads the exact frozen source/evidence without rewriting it, closes named blockers, verifies the focused behavior, and commits/packages accepted work. If correction is needed, record precise blockers and return to `phase: implement`; do not wait on an in-process child. This preserves reviewer separation without a blocking nested runtime. Never call a new review necessary merely because an already-completed review did not run a redundant test.
+
+Each tool command must have an explicit bound and explicit runtime PATH. Keep tests/read-only inspections below 90 seconds, builds/browser acceptance below 240 seconds, and checkpoint between operations. A failed tool call is a checkpointed blocker, not a reason to run a chain of new probes. Raw exports contain base64 images: parse and print only required geometry/metadata, never dump them into context. Finish a coherent stage and return; do not pad the cycle with new features. Retain error artifacts and recover only after the previous run is proven terminated.
+
 A reviewer saying “passes tests” is not visual acceptance. Keep a fixed plan/camera/material comparison where isolating render quality, plus a separate product-default view. Never silently replace the plan or repaint the exported image to claim progress. Preserve original source and comparison evidence.
 
 ## Ranked priorities
