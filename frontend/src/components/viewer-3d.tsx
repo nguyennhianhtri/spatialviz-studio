@@ -10,7 +10,7 @@ import { SceneToolbar } from './scene-toolbar';
 import { RoomInfo } from './room-info';
 import { RoomFloor, DerivedWall, DerivedDoor, DerivedWindow, RoomFurniture, roomAnchor } from './scene-derived';
 import { deriveSceneGeometry, wallSolidSegments } from '@/lib/geometry-engine';
-import { sceneBounds, fitCamera, type RenderBounds } from '@/lib/render-layout';
+import { sceneBounds, fitCamera, roomPresentation, type RenderBounds, type RoomPresentation } from '@/lib/render-layout';
 import { renderPalettes } from '@/lib/render-palette';
 import { FirstPersonControls, PlayerPositionTracker, collisionDataRef, walkLookRef } from './first-person-controls';
 import { Minimap } from './minimap';
@@ -34,13 +34,15 @@ function RenderCapture({register}:{register:(capture:ExportRender|null)=>void}) 
  },[gl,scene,camera,register]);
  return null;
 }
-function ArchitecturalScene({scene,bounds:b}:{scene:SceneGraph;bounds:RenderBounds}) {
+function ArchitecturalScene({scene,bounds:b,focus}:{scene:SceneGraph;bounds:RenderBounds;focus:RoomPresentation|null}) {
  const {selectedRoom,selectRoom,dayMode,stylePreset='warm',showFurniture=true,showLabels=true,cutaway=true,viewMode}=useSceneStore();
  const derived=useMemo(()=>deriveSceneGeometry(scene),[scene]);
  const palette=renderPalettes[stylePreset],evening=dayMode==='night';
  const roomFinishes=useDesignStore(s=>s.finishes);
- const center:[number,number]=[b.center[0],b.center[2]];
- const cutProps={cutaway:cutaway&&viewMode!=='walkthrough',center,topdown:viewMode==='topdown',stylePreset};
+ const center:[number,number]=focus?[focus.bounds.center[0],focus.bounds.center[2]]:[b.center[0],b.center[2]];
+ const cutProps={cutaway:cutaway&&viewMode!=='walkthrough',center,topdown:viewMode==='topdown',stylePreset,roomPresentation:!!focus};
+ const visibleRoom=(id:string)=>!focus||focus.roomIds.includes(id);
+ const visibleEdge=(edge:{rooms:string[]})=>!focus||edge.rooms.some(visibleRoom);
  const lightTarget=useMemo(()=>{const target=new THREE.Object3D();target.position.set(b.center[0],0,b.center[2]);return target;},[b]);
  useEffect(()=>{
    // Collide with actual solids at walking height, so nearby perpendicular walls never become doorways.
@@ -60,18 +62,18 @@ function ArchitecturalScene({scene,bounds:b}:{scene:SceneGraph;bounds:RenderBoun
    <directionalLight position={[b.center[0]+b.span,b.span,b.center[2]+b.span]} intensity={evening?0.45:0.7} color="#e5edf2"/>
    {evening&&scene.rooms.slice(0,16).map(room=>{const [x,z]=roomAnchor(room);return <pointLight key={room.id} position={[x,b.height*0.78,z]} color="#ffca86" intensity={9} distance={Math.max(4,Math.sqrt(room.area_sqm)*1.4)} decay={2}/>;})}
    <mesh rotation={[-Math.PI/2,0,0]} position={[b.center[0],-0.2,b.center[2]]} receiveShadow><planeGeometry args={[b.span*200,b.span*200]}/><meshStandardMaterial color={evening?'#d4c9bc':palette.ground} roughness={1}/></mesh>
-   <ContactShadows key={`${scene.metadata.source_file}-${stylePreset}-${dayMode}`} position={[b.center[0],-0.185,b.center[2]]} opacity={0.32} scale={b.span+3} blur={2.3} far={3} resolution={512} frames={1} color="#645644"/>
-   {scene.rooms.map(room=><RoomFloor key={room.id} room={room} isSelected={selectedRoom===room.id} onSelect={()=>selectRoom(selectedRoom===room.id?null:room.id)} stylePreset={stylePreset} showLabels={showLabels&&viewMode!=='walkthrough'}/>)}
-   {derived.edges.map((edge,i)=><DerivedWall key={i} edge={edge} allDoorPlacements={derived.doors} allWindowPlacements={derived.windows} wallColor={edge.rooms.map(id=>roomFinishes[id]?.wall).find(Boolean)} {...cutProps}/>)}
-   {derived.doors.map(placement=><DerivedDoor key={placement.door.id} placement={placement} {...cutProps}/>)}
-   {derived.windows.map(placement=><DerivedWindow key={placement.window.id} placement={placement} {...cutProps}/>)}
-   {showFurniture&&<EditableFurnishings scene={scene}/>}
+   <ContactShadows key={`${scene.metadata.source_file}-${stylePreset}-${dayMode}-${focus?.roomIds.join(',')||'home'}`} position={[b.center[0],-0.185,b.center[2]]} opacity={0.32} scale={b.span+3} blur={2.3} far={3} resolution={512} frames={1} color="#645644"/>
+   {scene.rooms.filter(room=>visibleRoom(room.id)).map(room=><RoomFloor key={room.id} room={room} isSelected={selectedRoom===room.id} onSelect={()=>selectRoom(selectedRoom===room.id?null:room.id)} stylePreset={stylePreset} showLabels={showLabels&&viewMode!=='walkthrough'}/>)}
+   {derived.edges.filter(visibleEdge).map(edge=><DerivedWall key={`${edge.start.x},${edge.start.y}:${edge.end.x},${edge.end.y}`} edge={edge} allDoorPlacements={derived.doors} allWindowPlacements={derived.windows} wallColor={edge.rooms.filter(visibleRoom).map(id=>roomFinishes[id]?.wall).find(Boolean)} {...cutProps}/>)}
+   {derived.doors.filter(placement=>visibleEdge(placement.edge)).map(placement=><DerivedDoor key={placement.door.id} placement={placement} {...cutProps}/>)}
+   {derived.windows.filter(placement=>visibleEdge(placement.edge)).map(placement=><DerivedWindow key={placement.window.id} placement={placement} {...cutProps}/>)}
+   {showFurniture&&<EditableFurnishings scene={scene} visibleRoomIds={focus?.roomIds}/>}
  </>;
 }
-function FittedControls({bounds,fitRevision}:{bounds:RenderBounds;fitRevision:number}) {
+function FittedControls({bounds,fitRevision,direction}:{bounds:RenderBounds;fitRevision:number;direction?:[number,number,number]}) {
  const viewMode=useSceneStore(s=>s.viewMode),{camera,size}=useThree();
  const controls=useRef<OrbitControlsImpl>(null);
- const fit=useMemo(()=>fitCamera(bounds,size.width/Math.max(1,size.height),42,viewMode),[bounds,size.width,size.height,viewMode]);
+ const fit=useMemo(()=>fitCamera(bounds,size.width/Math.max(1,size.height),42,viewMode,direction),[bounds,size.width,size.height,viewMode,direction]);
  useEffect(()=>{
    camera.position.fromArray(fit.position);camera.lookAt(...bounds.center);
    camera.near=0.02;camera.far=Math.max(500,fit.distance*10);camera.updateProjectionMatrix();
@@ -94,12 +96,19 @@ export function Viewer3D() {
  const {scene:sourceScene,viewMode,selectedRoom}=useSceneStore();
  const finishes=useDesignStore(s=>s.finishes);
  const scene=useMemo(()=>sourceScene?{...sourceScene,rooms:sourceScene.rooms.map(r=>finishes[r.id]?{...r,floor_material:finishes[r.id].floor,wall_color:finishes[r.id].wall}:r)}:null,[sourceScene,finishes]);
- const [fitRevision,setFitRevision]=useState(0),[exporting,setExporting]=useState(false),[focusRoom,setFocusRoom]=useState<string|null>(null);
- useEffect(()=>{const focus=(event:Event)=>setFocusRoom((event as CustomEvent<string>).detail);window.addEventListener('spatialviz:focus-room',focus);return()=>window.removeEventListener('spatialviz:focus-room',focus);},[]);
+ const [fitRevision,setFitRevision]=useState(0),[exporting,setExporting]=useState(false),[focus,setFocus]=useState<RoomPresentation|null>(null);
+ useEffect(()=>{
+   setFocus(null);
+   const onFocus=(event:Event)=>{if(sourceScene)setFocus(roomPresentation(sourceScene,(event as CustomEvent<string>).detail,useDesignStore.getState().items));};
+   window.addEventListener('spatialviz:focus-room',onFocus);
+   return()=>window.removeEventListener('spatialviz:focus-room',onFocus);
+ },[sourceScene]);
+ // Changing the design-room selector must not leave edits hidden in a different room.
+ useEffect(()=>{if(selectedRoom)setFocus(current=>current&&!current.roomIds.includes(selectedRoom)?null:current);},[selectedRoom]);
  const capture=useRef<ExportRender|null>(null);
  const register=useCallback((fn:ExportRender|null)=>{capture.current=fn;},[]);
- const bounds=useMemo(()=>scene?sceneBounds(scene):null,[scene]);
- const framing=useMemo(()=>{if(!scene||!focusRoom)return bounds;const room=scene.rooms.find(r=>r.id===focusRoom);if(!room)return bounds;return sceneBounds({...scene,rooms:scene.rooms.filter(r=>r.id===focusRoom||(room.merge_group&&r.merge_group===room.merge_group)),walls:[]});},[scene,focusRoom,bounds]);
+ const bounds=useMemo(()=>sourceScene?sceneBounds(sourceScene):null,[sourceScene]);
+ const activeFocus=viewMode==='walkthrough'?null:focus;
  const exportPNG=async()=>{
    if(!capture.current || exporting) return;
    setExporting(true);
@@ -115,15 +124,18 @@ export function Viewer3D() {
  return <div className="relative h-full w-full overflow-hidden" data-testid="studio-render">
    <Canvas shadows dpr={[1,2]} gl={{antialias:true,preserveDrawingBuffer:true,toneMapping:THREE.ACESFilmicToneMapping,toneMappingExposure:1}} onCreated={({gl})=>{gl.shadowMap.type=THREE.PCFSoftShadowMap;gl.outputColorSpace=THREE.SRGBColorSpace;}}>
      <PerspectiveCamera makeDefault position={fitCamera(bounds,1.5,42,'orbit').position} fov={walk?68:42} near={0.02} far={Math.max(500,bounds.span*20)}/>
-     <ArchitecturalScene scene={scene} bounds={bounds}/>
+     <ArchitecturalScene scene={scene} bounds={bounds} focus={activeFocus}/>
      <PlayerPositionTracker/>
-     {walk?<><WalkEntry scene={scene}/><FirstPersonControls/></>:<FittedControls bounds={framing||bounds} fitRevision={fitRevision}/>}
+     {walk?<><WalkEntry scene={scene}/><FirstPersonControls/></>:<FittedControls bounds={activeFocus?.bounds||bounds} direction={activeFocus?.direction} fitRevision={fitRevision}/>}
      <EffectComposer multisampling={4}><N8AO aoRadius={0.6} intensity={1.6} distanceFalloff={1} quality="medium" color="#645b4a"/><ToneMapping mode={ToneMappingMode.ACES_FILMIC}/></EffectComposer>
      <RenderCapture register={register}/>
    </Canvas>
-   <div className="pointer-events-none absolute left-5 top-4 rounded-full bg-white/75 px-3 py-1.5 text-[10px] font-medium tracking-[0.14em] text-stone-600 backdrop-blur-sm">{walk?'WALKTHROUGH':'ARCHITECTURAL MODEL'}</div>
+   <div className="absolute left-5 top-4 rounded-2xl bg-white/90 px-3 py-2 text-[10px] font-medium text-stone-600 backdrop-blur-sm">
+     <div className="tracking-[0.14em]">{walk?'WALKTHROUGH':activeFocus?`${activeFocus.label} · ROOM VIEW`:'ARCHITECTURAL MODEL'}</div>
+     {activeFocus&&<><div className="mt-1">Other rooms hidden · ceiling omitted</div><button className="mt-2 underline underline-offset-2" onClick={()=>setFocus(null)}>Show whole home</button></>}
+   </div>
    {walk&&<><div className="absolute top-14 left-5 rounded-lg bg-white/90 px-3 py-2 text-xs text-stone-700">WASD to move · drag to look · E for doors</div><Minimap scene={scene}/></>}
-   <SceneToolbar onExport={exportPNG} exporting={exporting} onFit={()=>{setFocusRoom(null);setFitRevision(r=>r+1);}}/>
-   {selected&&<RoomInfo room={selected}/>}
+   <SceneToolbar onExport={exportPNG} exporting={exporting} onFit={()=>{setFocus(null);setFitRevision(r=>r+1);}}/>
+   {selected&&!activeFocus&&<RoomInfo room={selected}/>}
  </div>;
 }

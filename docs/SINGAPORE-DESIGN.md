@@ -24,5 +24,11 @@ These are two local renovation starting points, not a claim that all HDBs or con
 
 Next improvements should work toward coherent fitted carpentry and realistic openings/curtains, a useful room-level presentation view, condo balcony furnishing only where drawn, and multiple grounded local design languages. Do not retreat to generic kit furniture, add a skyline/flag as a substitute for interiors, or simply retint the same model. Preserve manual design edits, doorway circulation and the real uploaded layout.
 
+## Room presentation refinement
+
+`Focus on this room` now presents only the chosen room and its existing merge-group fragments, with a camera facing the front of its fitted TV wall, kitchen, wardrobe or shoe cabinet. Far room boundaries remain full-height in cutaway; foreground boundaries are sectioned. It filters the original derived walls/openings for display—it does not re-extract, enlarge or remodel the source. `Show whole home` or `Fit` restores the whole apartment. The on-screen notice explicitly identifies hidden rooms and omitted ceiling; suspended fixtures are still a cutaway convention, not a newly modelled ceiling.
+
+The focus direction is captured when requested, so changing a finish or moving furniture does not reset a manually adjusted camera. Existing room finishes, undo/redo and project exports still operate on the complete design. This is a presentation/customisation improvement, not a claim of new materials or photorealism. Private matched whole-home PNGs and separately labelled room-presentation PNGs are verified by `scripts/verify_room_presentation.py`.
+
 ## Verification
 `frontend/tests/singapore-design.test.cjs` checks rendered-kind vocabulary, differing proposals, source immutability, portable exports, undo/redo, mounting/opening constraints and sofa/TV orientation. `scripts/verify_singapore_design.py` exercises the real compiled app against a captured uploaded plan through both profile buttons, cancel, source preservation, PNG/project exports, undo/redo, reload and import. Evidence stays in private operator storage, not this public repository.

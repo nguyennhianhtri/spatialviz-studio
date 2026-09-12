@@ -45,21 +45,21 @@ export function RoomFloor({room,isSelected,onSelect,stylePreset='warm',showLabel
  </group>;
 }
 /** Camera-facing exterior walls are sectioned; far elevations retain their architectural silhouette. */
-export function useWallHeight(edge:DerivedEdge,cutaway:boolean,center:[number,number],topdown=false) {
+export function useWallHeight(edge:DerivedEdge,cutaway:boolean,center:[number,number],topdown=false,roomPresentation=false) {
  const [front,setFront]=useState(true);const current=useRef(true);
  useFrame(({camera})=>{
-   if(!cutaway || edge.type==='interior') return;
+   if(!cutaway || (edge.type==='interior'&&!roomPresentation)) return;
    const dx=edge.midpoint.x-center[0],dz=edge.midpoint.y-center[1];
    const facing=dx*(camera.position.x-edge.midpoint.x)+dz*(camera.position.z-edge.midpoint.y)>0;
    if(facing!==current.current) {current.current=facing;setFront(facing);}
  });
  if(topdown) return Math.min(edge.height,0.35);
  if(!cutaway) return edge.isBalconyExterior?1.05:edge.height;
- return edge.type==='interior'?Math.min(edge.height,0.95):front?Math.min(edge.height,0.65):edge.isBalconyExterior?1.05:edge.height;
+ return edge.type==='interior'&&!roomPresentation?Math.min(edge.height,0.95):front?Math.min(edge.height,0.65):edge.isBalconyExterior?1.05:edge.height;
 }
-interface CutProps { cutaway?:boolean; center?:[number,number]; topdown?:boolean; stylePreset?:StylePreset }
-export function DerivedWall({edge,allDoorPlacements=[],allWindowPlacements=[],cutaway=false,center=[0,0],topdown=false,stylePreset='warm',wallColor}:{edge:DerivedEdge;allDoorPlacements?:DoorPlacement[];allWindowPlacements?:WindowPlacement[];wallColor?:string}&CutProps) {
- const h=useWallHeight(edge,cutaway,center,topdown),p=renderPalettes[stylePreset];
+interface CutProps { cutaway?:boolean; center?:[number,number]; topdown?:boolean; stylePreset?:StylePreset; roomPresentation?:boolean }
+export function DerivedWall({edge,allDoorPlacements=[],allWindowPlacements=[],cutaway=false,center=[0,0],topdown=false,stylePreset='warm',wallColor,roomPresentation=false}:{edge:DerivedEdge;allDoorPlacements?:DoorPlacement[];allWindowPlacements?:WindowPlacement[];wallColor?:string}&CutProps) {
+ const h=useWallHeight(edge,cutaway,center,topdown,roomPresentation),p=renderPalettes[stylePreset];
  const segments=useMemo(()=>wallSolidSegments(edge,allDoorPlacements,allWindowPlacements,h),[edge,allDoorPlacements,allWindowPlacements,h]);
  return <group position={[edge.midpoint.x,0,edge.midpoint.y]} rotation={[0,-edge.angle,0]}>
    {segments.map((s,i)=><group key={i}><mesh position={[s.x,s.y,0]} castShadow receiveShadow><boxGeometry args={[s.w,s.h,edge.thickness]}/><meshStandardMaterial color={wallColor||p.wall} roughness={0.9}/></mesh>
@@ -68,8 +68,8 @@ export function DerivedWall({edge,allDoorPlacements=[],allWindowPlacements=[],cu
    </group>)}
  </group>;
 }
-export function DerivedDoor({placement,cutaway=false,center=[0,0],topdown=false,stylePreset='warm'}:{placement:DoorPlacement}&CutProps) {
- const {door,edge,t}=placement,p=renderPalettes[stylePreset],h=useWallHeight(edge,cutaway,center,topdown);
+export function DerivedDoor({placement,cutaway=false,center=[0,0],topdown=false,stylePreset='warm',roomPresentation=false}:{placement:DoorPlacement}&CutProps) {
+ const {door,edge,t}=placement,p=renderPalettes[stylePreset],h=useWallHeight(edge,cutaway,center,topdown,roomPresentation);
  const x=edge.start.x+t*(edge.end.x-edge.start.x),z=edge.start.y+t*(edge.end.y-edge.start.y);
  const width=Math.max(0.1,door.width_m),height=Math.min(2.1,edge.height),view=useSceneStore(s=>s.viewMode);
  const panel=useRef<THREE.Group>(null),open=useRef(true),lastKey=useRef(false);
@@ -88,8 +88,8 @@ export function DerivedDoor({placement,cutaway=false,center=[0,0],topdown=false,
    </>}
  </group>;
 }
-export function DerivedWindow({placement,cutaway=false,center=[0,0],topdown=false,stylePreset='warm'}:{placement:WindowPlacement}&CutProps) {
- const {window:w,edge,t}=placement,h=useWallHeight(edge,cutaway,center,topdown),p=renderPalettes[stylePreset];
+export function DerivedWindow({placement,cutaway=false,center=[0,0],topdown=false,stylePreset='warm',roomPresentation=false}:{placement:WindowPlacement}&CutProps) {
+ const {window:w,edge,t}=placement,h=useWallHeight(edge,cutaway,center,topdown,roomPresentation),p=renderPalettes[stylePreset];
  const bottom=Math.max(0,w.sill_height_m),height=Math.min(w.height_m,h-bottom);
  if(height<0.1) return null;
  const x=edge.start.x+t*(edge.end.x-edge.start.x),z=edge.start.y+t*(edge.end.y-edge.start.y),width=w.width_m;
