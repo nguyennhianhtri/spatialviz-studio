@@ -1,33 +1,5 @@
-import type { Metadata } from "next";
-import { Toaster } from "react-hot-toast";
-import "./globals.css";
-
-export const metadata: Metadata = {
-  title: "SpatialViz Studio — 2D Floor Plans to Interactive 3D",
-  description:
-    "Upload a 2D floor plan and get an interactive 3D visualization in seconds. AI-powered spatial intelligence for city planners, facilities managers, and housing authorities.",
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en" className="dark">
-      <body>
-        {children}
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: "#1a1a2e",
-              color: "#f1f5f9",
-              border: "1px solid #2a2a3e",
-            },
-          }}
-        />
-      </body>
-    </html>
-  );
-}
+import type { Metadata } from 'next';
+import { Toaster } from 'react-hot-toast';
+import './globals.css';
+export const metadata: Metadata = {title:'SpatialViz Studio — a new perspective on your space',description:'Turn a floor plan into a space to explore. Review room dimensions against your original plan, refine the layout, and create an interactive 3D view.'};
+export default function RootLayout({children}:{children:React.ReactNode}) {return <html lang="en"><body>{children}<Toaster position="bottom-right" toastOptions={{style:{background:'#faf9f4',color:'#30392f',border:'1px solid #deded2'}}}/></body></html>;}

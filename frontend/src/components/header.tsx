@@ -1,38 +1,14 @@
 "use client";
-
-import { Box, MessageSquare, Sun, Moon, Eye, Move3D, ArrowDown } from "lucide-react";
-
-interface HeaderProps {
-  onToggleChat: () => void;
-  chatOpen: boolean;
-}
-
-export function Header({ onToggleChat, chatOpen }: HeaderProps) {
-  return (
-    <header className="flex h-14 items-center justify-between border-b border-[var(--border)] bg-[var(--bg-secondary)] px-6">
-      <div className="flex items-center gap-3">
-        <Box className="h-6 w-6 text-[var(--accent)]" />
-        <h1 className="text-lg font-semibold tracking-tight">
-          SpatialViz<span className="text-[var(--accent)]"> Studio</span>
-        </h1>
-        <span className="rounded-full bg-[var(--accent)]/10 px-2 py-0.5 text-xs text-[var(--accent)]">
-          Prototype
-        </span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          onClick={onToggleChat}
-          className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${
-            chatOpen
-              ? "bg-[var(--accent)] text-white"
-              : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-          }`}
-        >
-          <MessageSquare className="h-4 w-4" />
-          Planner Copilot
-        </button>
-      </div>
-    </header>
-  );
+import { useRef, useState } from 'react';
+import { ArrowDownToLine, FolderOpen, Layers2, Plus, Check } from 'lucide-react';
+import { useSceneStore } from '@/store/scene-store';
+import { useDesignStore } from '@/store/design-store';
+import { bundleInteriors, readInteriors } from '@/lib/interior-project';
+import { furnishRoom, moveItem } from '@/lib/interior-design';
+import { parseProject } from '@/components/studio/project';
+export function Header({saveStatus='Saved on this device'}:{saveStatus?:string}) {
+ const s=useSceneStore();const input=useRef<HTMLInputElement>(null);const [error,setError]=useState('');
+ function download(){if(s.scene)useDesignStore.getState().initialize(s.scene);const d=useDesignStore.getState();const blob=new Blob([bundleInteriors(s.exportProject(),{items:d.items,finishes:d.finishes})],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${s.projectName.replace(/[^a-z0-9_-]/gi,'-')||'spatialviz'}.spatialviz.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+ async function importFile(file?:File){if(!file)return;try{if(file.size>30*1024*1024)throw new Error('Project is too large (30 MB maximum).');const text=await file.text(); const candidate=parseProject(text), interiors=readInteriors(text);if(interiors?.items.some(i=>!candidate.scene?.rooms.some(r=>r.id===i.roomId&&moveItem(i,{},r))))throw new Error('Furnishings do not fit this project. Nothing was replaced.'); if((s.editorRooms.length||s.scene)&&!window.confirm('Replace the current project? Download it first if you want to keep a copy.'))return;s.importProject(text);if(candidate.scene)useDesignStore.getState().load(interiors||{items:candidate.scene.rooms.flatMap(r=>furnishRoom(r,candidate.scene!.doors)),finishes:{}},candidate.scene);else useDesignStore.setState({items:[],finishes:{},sourceKey:'',selected:null,past:[],future:[]});setError('');}catch(e){setError(e instanceof Error?e.message:'Could not open this project.');}finally{if(input.current)input.current.value='';}}
+ return <><header className="studio-header"><a className="brand" href="/" onClick={e=>{e.preventDefault();if(!s.isProcessing)s.setStage('upload');}} aria-label="SpatialViz design desk"><span className="brand-mark"><Layers2 size={21}/></span><strong>spatialviz<span> / studio</span></strong></a><span className="save-status"><Check size={13}/>{saveStatus}</span><div className="header-actions"><button aria-label="New floor plan" className="quiet-button" disabled={s.isProcessing} onClick={()=>s.setStage('upload')}><Plus size={16}/><span>New plan</span></button><button aria-label="Open project" className="quiet-button" disabled={s.isProcessing} onClick={()=>input.current?.click()}><FolderOpen size={16}/><span>Open project</span></button><button aria-label="Save project copy" className="secondary-button compact" disabled={!s.editorRooms.length&&!s.scene} onClick={download}><ArrowDownToLine size={16}/><span>Save a copy</span></button><input ref={input} type="file" accept=".json,application/json" aria-label="Import project JSON" hidden onChange={e=>void importFile(e.target.files?.[0])}/></div></header>{saveStatus.includes("unavailable")&&<div className="header-error" role="alert">{saveStatus}. Your work remains open, but may be lost when this tab closes.</div>}{error&&<div role="alert" className="header-error">{error}<button className="text-button" onClick={()=>setError('')}>Dismiss</button></div>}</>;
 }

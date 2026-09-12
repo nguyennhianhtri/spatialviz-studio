@@ -1,55 +1,12 @@
 "use client";
-
-import { motion } from "framer-motion";
-import type { RoomDef } from "@/types/scene";
-import { X } from "lucide-react";
-import { useSceneStore } from "@/store/scene-store";
-
-export function RoomInfo({ room }: { room: RoomDef }) {
-  const { selectRoom } = useSceneStore();
-
-  return (
-    <motion.div
-      initial={{ x: -20, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: -20, opacity: 0 }}
-      className="absolute left-4 top-4 w-72 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)]/90 p-4 backdrop-blur-sm"
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-sm font-semibold">{room.label}</h3>
-          <p className="text-xs text-[var(--text-secondary)] capitalize">
-            {room.type} room
-          </p>
-        </div>
-        <button
-          onClick={() => selectRoom(null)}
-          className="rounded-md p-1 text-[var(--text-secondary)] hover:bg-[var(--bg-card)]"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Stat label="Area" value={`${room.area_sqm} m²`} />
-        <Stat label="Type" value={room.type} />
-        <Stat
-          label="Vertices"
-          value={`${room.polygon.length}`}
-        />
-        <Stat label="Floor" value={room.floor_material.replace("_", " ")} />
-      </div>
-    </motion.div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg bg-[var(--bg-card)] p-2">
-      <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
-        {label}
-      </p>
-      <p className="text-sm font-medium capitalize">{value}</p>
-    </div>
-  );
+import type { RoomDef } from '@/types/scene';
+import { X } from 'lucide-react';
+import { useSceneStore } from '@/store/scene-store';
+export function RoomInfo({room}:{room:RoomDef}) {
+ const selectRoom=useSceneStore(s=>s.selectRoom);
+ return <aside aria-label="Selected room" className="absolute left-5 top-16 z-10 w-56 rounded-xl border border-stone-300/70 bg-[#faf8f2]/95 p-4 text-stone-700 shadow-sm backdrop-blur-md">
+   <div className="flex items-start justify-between gap-3"><div><h3 className="text-sm font-semibold">{room.label}</h3><p className="mt-1 text-xs capitalize text-stone-500">{room.type.replaceAll('_',' ')}</p></div><button aria-label="Close room details" onClick={()=>selectRoom(null)} className="rounded-md p-1 hover:bg-stone-200"><X size={14}/></button></div>
+   <p className="mt-4 text-2xl font-light tracking-tight">{Number(room.area_sqm.toFixed(1))} <span className="text-sm text-stone-500">m²</span></p>
+   <p className="mt-1 text-[11px] text-stone-500">Model area · confirm against the plan</p>
+ </aside>;
 }

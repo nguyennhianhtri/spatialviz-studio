@@ -10,6 +10,8 @@ build/
 
 # Next.js
 .next/
+*.tsbuildinfo
+INTEGRATION-NOTES.md
 out/
 
 # Environment / secrets
