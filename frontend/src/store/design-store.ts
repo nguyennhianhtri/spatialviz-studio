@@ -1,11 +1,14 @@
 import { create } from 'zustand';
+import { designSingaporeHome, placeSingaporeFitting, type SingaporeHomeStyle } from '../lib/singapore-design';
 import { persist } from 'zustand/middleware';
 import type { RoomDef, SceneGraph } from '../types/scene';
-import { furnishRoom, getDesignKey, moveItem, placeItem, validateDesign, type DesignItem, type InteriorDesign, type ItemKind, type RoomFinish } from '../lib/interior-design';
+import { catalog, furnishRoom, getDesignKey, moveItem, placeItem, validateDesign, type DesignItem, type InteriorDesign, type ItemKind, type RoomFinish } from '../lib/interior-design';
 interface DesignState extends InteriorDesign {
  sourceKey:string; selected:string|null; panelOpen:boolean; past:InteriorDesign[]; future:InteriorDesign[];
+ applySingaporeStyle:(scene:SceneGraph,style:SingaporeHomeStyle)=>void;
+ arrangeRoom:(roomId:string,scene:SceneGraph)=>boolean;
  initialize:(scene:SceneGraph)=>void;
- add:(kind:ItemKind,room:RoomDef)=>boolean;
+ add:(kind:ItemKind,room:RoomDef,scene?:SceneGraph)=>boolean;
  update:(id:string,patch:Partial<DesignItem>,room:RoomDef)=>boolean;
  remove:(id:string)=>void; select:(id:string|null)=>void; setPanel:(open:boolean)=>void;
  finish:(roomId:string,patch:Partial<RoomFinish>)=>void; undo:()=>void; redo:()=>void;
@@ -15,8 +18,10 @@ const snapshot=(s:InteriorDesign):InteriorDesign=>({items:s.items,finishes:s.fin
 const history=(s:DesignState)=>({past:[...s.past.slice(-39),snapshot(s)],future:[]});
 export const useDesignStore=create<DesignState>()(persist((set,get)=>({
  sourceKey:'',items:[],finishes:{},selected:null,panelOpen:true,past:[],future:[],
+ applySingaporeStyle:(scene,style)=>set(s=>({...history(s),...designSingaporeHome(scene,style),sourceKey:getDesignKey(scene),selected:null})),
+ arrangeRoom:(roomId,scene)=>{const room=scene.rooms.find(r=>r.id===roomId);if(!room||room.type!=='bedroom')return false;const items=furnishRoom(room,scene.doors);if(!items.some(i=>i.kind==='bed'))return false;set(s=>({...history(s),items:[...s.items.filter(i=>i.roomId!==roomId),...items],selected:null}));return true;},
  initialize:(scene)=>{const key=getDesignKey(scene);if(get().sourceKey===key)return;set({sourceKey:key,items:scene.rooms.flatMap(r=>furnishRoom(r,scene.doors)),finishes:{},selected:null,past:[],future:[]});},
- add:(kind,room)=>{const state=get();const item=placeItem(kind,room,state.items.filter(i=>i.roomId===room.id),crypto.randomUUID());if(!item)return false;set({...history(state),items:[...state.items,item],selected:item.id});return true;},
+ add:(kind,room,scene)=>{const state=get(),roomItems=state.items.filter(i=>i.roomId===room.id),id=crypto.randomUUID();const item=scene&&catalog.find(c=>c.kind===kind)?.category==='Singapore'?placeSingaporeFitting(kind,room,scene,roomItems,id):placeItem(kind,room,roomItems,id);if(!item)return false;set({...history(state),items:[...state.items,item],selected:item.id});return true;},
  update:(id,patch,room)=>{const state=get(),item=state.items.find(i=>i.id===id);if(!item)return false;const next=moveItem(item,patch,room);if(!next)return false;set({...history(state),items:state.items.map(i=>i.id===id?next:i)});return true;},
  remove:(id)=>set(s=>({...history(s),items:s.items.filter(i=>i.id!==id),selected:s.selected===id?null:s.selected})),
  select:(selected)=>set({selected}), setPanel:(panelOpen)=>set({panelOpen}),

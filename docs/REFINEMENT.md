@@ -1,7 +1,7 @@
 # SpatialViz continuous product refinement
 
 ## Mandate
-The owner authorised ongoing improvements following the SolutionBoss / OmniAgent solutioning pattern. The acceptance criterion is **a genuinely attractive, customisable HDB/condo design experience**, not merely a green build. Current output is a starting point, not the desired final visual quality.
+The owner authorised ongoing improvements following the SolutionBoss / OmniAgent solutioning pattern. The acceptance criterion is **a genuinely attractive, recognisably Singapore HDB/condo design experience**, not merely a green build. The owner explicitly rejected generic Western-apartment results. Read `docs/SINGAPORE-DESIGN.md`: local carpentry, cooling, utility spaces, compact proportions and real-plan openings must drive the actual 3D output. Locality is not a label or colour swap. Do not invent balconies/yards/shelters absent from the plan. Current output remains a starting point, not final visual quality.
 
 ## Loop
 One canonical writer. Read current operator state, Git and newest user feedback first. Inspect the actual rendered output and one real user journey. Pick one high-impact bounded change, implement it, obtain independent read-only review, verify the changed behaviour and actual resulting image, then publish a verified candidate. Record evidence and next priority. Do not keep producing plans/reports instead of improvements. If there is no useful justified work, stay quiet.
